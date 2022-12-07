@@ -1,16 +1,18 @@
 {
-  "name": "metalog",
+  "name": "@quri/metalog",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc",
+    "prepublish": "tsc"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Hazelfire/metalog.git"
   },
-  "author": "",
+  "author": "Sam Nolan",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Hazelfire/metalog/issues"
