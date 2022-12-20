@@ -3,5 +3,11 @@
   "features": {
     "ghcr.io/devcontainers-contrib/features/typescript:1": {},
     "ghcr.io/devcontainers-contrib/features/jest:1": {}
+  },
+  "customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+      "extensions":["Orta.vscode-jest", "ms-vscode.vscode-typescript-next"]
+    }
   }
 }
