@@ -2,7 +2,8 @@
   "name": "@quri/metalog",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "scripts": {
     "test": "jest",
     "build": "tsc",
@@ -18,9 +19,7 @@
     "url": "https://github.com/Hazelfire/metalog/issues"
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
-  "dependencies": {
-    "mathjs": "^11.3.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^29.2.3",
     "jest": "^29.3.1",

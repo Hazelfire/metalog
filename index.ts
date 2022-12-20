@@ -1,4 +1,4 @@
-import {
+/*import {
   matrix,
   multiply,
   inv,
@@ -8,7 +8,7 @@ import {
   transpose,
   number,
   MathNumericType,
-} from "mathjs";
+} from "mathjs";*/
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
 export function metalogBasisFunction(j: number, y: number): number {
@@ -57,7 +57,7 @@ function quantileDiff(a: number[], y: number): number {
 }
 
 export function cdf(a: number[], x: number): number {
-  const alpha_step = 0.01;
+  const alpha_step = 0.1;
   const err = 0.0000001;
   let temp_err = 0.1;
   let y_now = 0.5;
@@ -82,6 +82,7 @@ export function cdf(a: number[], x: number): number {
         " is to far from distribution median. Currently at",
         y_now
       );
+      console.log(y_now);
       return NaN;
     }
   }
@@ -92,6 +93,7 @@ export function pdf(a: number[], x: number): number {
   return 1 / quantileDiff(a, cdf(a, x));
 }
 
+/*
 export function fitMetalog(
   points: { x: number; y: number }[],
   terms: number
@@ -123,4 +125,4 @@ export function fitMetalog(
         }
       }
     });
-}
+}*/
