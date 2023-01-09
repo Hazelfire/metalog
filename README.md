@@ -10,3 +10,16 @@ and newton's method to find a solution that converges quickly.
 There are some problems with this implementation, most notably:
 1. Because we approximate the cdf with newton's method, the function is not strictly monotonic. A solution to this would be really difficult. I would need
 to work out how to iterate to the next highest float, and make sure the other functions floating point arithmetic is as accurate as possible.
+
+
+## Usage
+
+```js
+import { quantile } from "@quri/metalog"
+
+quantile([1, 2, 3], 0.5)
+cdf([1, 2, 3], 0)
+pdf([1, 2, 3], 0)\
+```
+
+The first argument is an array of the distributions `a` parameter. See [Metalog Distribution](https://en.wikipedia.org/wiki/Metalog_distribution) for details.
