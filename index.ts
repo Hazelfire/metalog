@@ -1,14 +1,13 @@
-/*import {
+import {
   matrix,
   multiply,
   inv,
-  format,
   isArray,
   isComplex,
   transpose,
   number,
   MathNumericType,
-} from "mathjs";*/
+} from "mathjs";
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
 export function metalogBasisFunction(j: number, y: number): number {
@@ -27,11 +26,11 @@ export function metalogBasisFunction(j: number, y: number): number {
     return (y - 0.5) ** ((j - 1) / 2) * logy;
   }
 }
-export function quantile(a: number[], y: number): number {
-  return sum(a.map((a_i, i) => a_i * metalogBasisFunction(i, y)));
+export function quantile(a: number[], q: number): number {
+  return sum(a.map((a_i, i) => a_i * metalogBasisFunction(i, q)));
 }
 
-function quantileDiff(a: number[], y: number): number {
+export function quantileDiff(a: number[], y: number): number {
   const logy = Math.log(y / (1 - y));
   return sum(
     a.map((a_i, i) => {
@@ -56,50 +55,64 @@ function quantileDiff(a: number[], y: number): number {
   );
 }
 
+function logistic(x: number): number {
+  return 1 / (1 + Math.exp(-1 * x));
+}
+
+function logisticInv(x: number): number {
+  return -1 * Math.log(1 / x - 1)
+}
+
+function logisticDeriv(x: number): number {
+  return Math.exp(-1 * x) / Math.pow(1 + Math.exp(-1 * x), 2);
+}
+
+// This is a combination of Newton's method and binary search.
+// It's basically a binary search, except we choose the "midpoint"
+// through newton's method.
+// In this case we are using the assumption that the quantile function
+// is monotonic (which it is)
 export function cdf(a: number[], x: number): number {
-  const alpha_step = 0.1;
-  const err = 0.0000001;
+  const alpha_step = 1;
+  const err = 0.0000000001;
   let temp_err = 0.1;
   let y_now = 0.5;
   let i = 1;
+  let max = 1;
+  let min = 0;
   while (temp_err > err) {
     const first_function = quantile(a, y_now) - x;
+    if(first_function > 0){
+      max = y_now;
+    }
+    else {
+      min = y_now;
+    }
     const derv_function = quantileDiff(a, y_now);
     let y_next = y_now - alpha_step * (first_function / derv_function);
     temp_err = Math.abs(y_next - y_now);
-    if (y_next > 1) {
-      y_next = 0.99999;
-    }
-    if (y_next < 0) {
-      y_next = 0.000001;
-    }
     y_now = y_next;
+    if(y_now > max || y_now < min) {
+      y_now = (min + max) / 2;
+    }
     i++;
-    if (i > 10000) {
-      console.log(
-        "Approximation taking too long, quantile value: ",
-        x,
-        " is to far from distribution median. Currently at",
-        y_now
-      );
-      console.log(y_now);
-      return NaN;
+    if (i > 1000) {
+      return y_now;
     }
   }
   return y_now;
 }
 
 export function pdf(a: number[], x: number): number {
-  return 1 / quantileDiff(a, cdf(a, x));
+  return Math.max(1 / quantileDiff(a, cdf(a, x)), 0);
 }
 
-/*
 export function fitMetalog(
   points: { x: number; y: number }[],
   terms: number
 ): number[] {
   const Y = matrix(
-    points.map(({ y }) =>
+    points.map(({y}) => 
       Array.from(Array(terms).keys()).map((i) => metalogBasisFunction(i, y))
     )
   );
@@ -125,4 +138,4 @@ export function fitMetalog(
         }
       }
     });
-}*/
+}

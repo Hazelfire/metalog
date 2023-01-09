@@ -19,7 +19,9 @@
     "url": "https://github.com/Hazelfire/metalog/issues"
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
-  "dependencies": {},
+  "dependencies": {
+    "mathjs": "^11.5.0"
+  },
   "devDependencies": {
     "@types/jest": "^29.2.3",
     "jest": "^29.3.1",
