@@ -8,6 +8,7 @@ import {
   number,
   MathNumericType,
 } from "mathjs";
+import {nextDown, nextUp} from "ulp"
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
 export function metalogBasisFunction(j: number, y: number): number {
@@ -67,6 +68,8 @@ function logisticDeriv(x: number): number {
   return Math.exp(-1 * x) / Math.pow(1 + Math.exp(-1 * x), 2);
 }
 
+
+
 // This is a combination of Newton's method and binary search.
 // It's basically a binary search, except we choose the "midpoint"
 // through newton's method.
@@ -74,13 +77,15 @@ function logisticDeriv(x: number): number {
 // is monotonic (which it is)
 export function cdf(a: number[], x: number): number {
   const alpha_step = 1;
-  const err = 0.0000000001;
   let temp_err = 0.1;
   let y_now = 0.5;
   let i = 1;
   let max = 1;
   let min = 0;
-  while (temp_err > err) {
+  while (temp_err > Number.EPSILON) {
+    if(min === max){
+      return min;
+    }
     const first_function = quantile(a, y_now) - x;
     if(first_function > 0){
       max = y_now;
@@ -98,6 +103,23 @@ export function cdf(a: number[], x: number): number {
     i++;
     if (i > 1000) {
       return y_now;
+    }
+  }
+
+  // Iterate through possible floats until we get an answer that's as close as possible
+  let diff = quantile(a, y_now) - x;
+  while(diff > 0){
+    const y_next = nextDown(y_now)
+    diff = quantile(a, y_next) - x;
+    if(diff > 0){
+      y_now = y_next;
+    }
+  }
+  while(diff < 0){
+    const y_next = nextUp(y_now)
+    diff = quantile(a, y_next) - x;
+    if(diff < 0){
+      y_now = y_next;
     }
   }
   return y_now;

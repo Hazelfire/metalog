@@ -48,7 +48,7 @@ describe("CDF is correct", () => {
       const a = dist.a;
       const start = quantile(a, 0.001);
       const end = quantile(a, 0.999);
-      const step = (end - start) / 100;
+      const step = (end - start) / 10000;
       for (let i = start; i < end; i += step) {
         expect(cdf(a, i + step)).toBeGreaterThanOrEqual(cdf(a, i));
       }
