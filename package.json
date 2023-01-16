@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
   "dependencies": {
-    "mathjs": "^11.5.0"
+    "mathjs": "^11.5.0",
+    "ulp": "^1.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.2.3",
