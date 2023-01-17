@@ -77,36 +77,44 @@ function logisticDeriv(x: number): number {
 // is monotonic (which it is)
 export function cdf(a: number[], x: number): number {
   const alpha_step = 1;
-  let temp_err = 0.1;
   let y_now = 0.5;
   let i = 1;
   let max = 1;
   let min = 0;
-  while (temp_err > Number.EPSILON) {
-    if(min === max){
-      return min;
-    }
+  while (true) {
     const first_function = quantile(a, y_now) - x;
     if(first_function > 0){
       max = y_now;
     }
-    else {
+    else if (first_function < 0) {
       min = y_now;
+    }
+    else {
+      return y_now;
     }
     const derv_function = quantileDiff(a, y_now);
     let y_next = y_now - alpha_step * (first_function / derv_function);
-    temp_err = Math.abs(y_next - y_now);
-    y_now = y_next;
-    if(y_now > max || y_now < min) {
-      y_now = (min + max) / 2;
+    if(y_next >= max || y_next <= min) {
+      y_next = (min + max) / 2;
+      // Our most common break condition is when the finder can't find the difference between the highest
+      // and smallest
+      if(y_next === min || y_next === max){
+        if(Math.abs(quantile(a, max) - x) < Math.abs(quantile(a, min) - x)){
+          return max;
+        }
+        else {
+          return min;
+        }
+      }
     }
+    y_now = y_next;
     i++;
-    if (i > 1000) {
+    if (i > 100) {
       return y_now;
     }
   }
-
   // Iterate through possible floats until we get an answer that's as close as possible
+  /*
   let diff = quantile(a, y_now) - x;
   while(diff > 0){
     const y_next = nextDown(y_now)
@@ -121,8 +129,7 @@ export function cdf(a: number[], x: number): number {
     if(diff < 0){
       y_now = y_next;
     }
-  }
-  return y_now;
+  }*/
 }
 
 export function pdf(a: number[], x: number): number {
