@@ -134,7 +134,6 @@ export function cdf(a: number[], x: number, err: number=0): number {
     y_now = y_next;
     i++;
     if (i > 100) {
-      console.log(`fail to converge x = ${x}`)
       return y_now;
     }
   }
