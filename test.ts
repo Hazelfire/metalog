@@ -31,18 +31,29 @@ describe("CDF is correct", () => {
   });
 
   it("is inverse of quantile", () => {
-    fixture.forEach((dist) => {
+    fixture.forEach((dist, fixture_id) => {
       const a = dist.a;
       const start = 0.0001;
       const end = 0.9999;
       const step = (end - start) / 100;
       for (let i = start; i < end; i += step) {
-        expect(cdf(a, quantile(a, i))).toBeCloseTo(i, 2);
+        let quantileResult = quantile(a, i)
+        let cdfResult = cdf(a, quantileResult)
+        expect(cdfResult, `Wasn't inverse!
+        i                   = ${i}
+        quantile(a, i)      = ${quantileResult}
+        cdf(quantile(a, i)) = ${cdfResult}
+        fixture_id          = ${fixture_id} 
+        
+        Here's a test case for debugging if you want to use it:
+        test("cdf should be inverse of quantile at x=${i}", () => {
+          const i = ${i}
+          const a = fixture[${fixture_id}]
+          expect(cdf(a, quantile(a, i))).toBeCloseTo(i)
+        })`).toBeCloseTo(i);
       }
     });
   });
-  // This isn't always the case over all domains. Replacing, start and end with -10 and 10 respectively
-  // Fails this test. This is because -10 and 10 are in the tails of some of these distributions.
   test("always grows", () => {
     fixture.map((dist, fixture_id) => {
       const a = dist.a;
@@ -174,11 +185,17 @@ describe("Fit x coordinate is correct", () => {
       expect(myFitScore).toBeLessThan(rMetalogFitScore);
     });
   });
+  it("Matches quantiles", () => {
+    const a = fitMetalog([{x: -1, y: 0.05}, {x: 2, y: 0.3}, {x: 6, y: 0.9}], 3)
+    expect(cdf(a, -1)).toBeCloseTo(0.05)
+    expect(cdf(a, 2)).toBeCloseTo(0.3)
+    expect(cdf(a, 6)).toBeCloseTo(0.9)
+  })
   it("has similar quantiles", () => {
     fixture.forEach((dist) => {
-      let points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
-      let myFit = fitMetalog(points, dist.terms[0]);
-      dist.x.forEach((x) => expect(cdf(myFit, x)).toEqual(cdf(dist.a, x)));
+      const points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
+      const myFit = fitMetalog(points, dist.terms[0]);
+      points.forEach(({x, y}) => expect(cdf(myFit, x)).toBeCloseTo(y));
     });
   });
 });

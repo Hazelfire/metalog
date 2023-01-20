@@ -2,5 +2,6 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "declaration": true
-  }
+  },
+  "files": ["node_modules/jest-expect-message/types/index.d.ts", "test.ts", "index.ts"],
 }
