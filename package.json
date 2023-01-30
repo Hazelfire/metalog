@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
   "dependencies": {
+    "glpk.js": "^4.0.1",
+    "lpsolver": "^1.0.2",
     "mathjs": "^11.5.0",
     "ulp": "^1.0.1"
   },

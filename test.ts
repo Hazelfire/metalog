@@ -1,4 +1,15 @@
-import { fitMetalog, quantile, cdf, pdf, metalogBasisFunction } from "./index";
+import {
+  fitMetalog,
+  fitMetalogLP,
+  equalityConstraintMatrix,
+  upperBoundConstraintMatrix,
+  quantile,
+  cdf,
+  pdf,
+  metalogBasisFunction,
+  validate,
+  MetalogValidationStatus,
+} from "./index";
 import * as fixture from "./fixture.json";
 import { Session } from "inspector";
 import * as fs from "fs";
@@ -37,9 +48,11 @@ describe("CDF is correct", () => {
       const end = 0.9999;
       const step = (end - start) / 100;
       for (let i = start; i < end; i += step) {
-        let quantileResult = quantile(a, i)
-        let cdfResult = cdf(a, quantileResult)
-        expect(cdfResult, `Wasn't inverse!
+        let quantileResult = quantile(a, i);
+        let cdfResult = cdf(a, quantileResult);
+        expect(
+          cdfResult,
+          `Wasn't inverse!
         i                   = ${i}
         quantile(a, i)      = ${quantileResult}
         cdf(quantile(a, i)) = ${cdfResult}
@@ -50,7 +63,8 @@ describe("CDF is correct", () => {
           const i = ${i}
           const a = fixture[${fixture_id}]
           expect(cdf(a, quantile(a, i))).toBeCloseTo(i)
-        })`).toBeCloseTo(i);
+        })`
+        ).toBeCloseTo(i);
       }
     });
   });
@@ -59,13 +73,17 @@ describe("CDF is correct", () => {
       const a = dist.a;
       const start = quantile(a, 0.00001);
       const end = quantile(a, 0.99999);
-      const count = 10000
+      const count = 10000;
       const step = (end - start) / count;
-      const arr = Array.from(Array(count-1).keys()).map(x => start + (x + 1) * step)
+      const arr = Array.from(Array(count - 1).keys()).map(
+        (x) => start + (x + 1) * step
+      );
       arr.forEach((i) => {
         const lowCdf = cdf(a, i);
         const highCdf = cdf(a, i + step);
-        expect(highCdf, `Failed test:\n
+        expect(
+          highCdf,
+          `Failed test:\n
         i                             = ${i}
         i + step                      = ${i + step}
         cdf(a, i)                     = ${lowCdf}
@@ -74,9 +92,11 @@ describe("CDF is correct", () => {
         quantile(a, cdf(a, i + step)) = ${quantile(a, highCdf)}
         fixture_id                    = ${fixture_id}
         
-        ${Math.abs(quantile(a, lowCdf) - i) < Math.abs(quantile(a, highCdf) - (i + step)) ? 
-          `I think the i + step calculation is wrong, because it's further away from the expected value`:
-          `I think the i calculation is wrong, because it's further away from the expected value`
+        ${
+          Math.abs(quantile(a, lowCdf) - i) <
+          Math.abs(quantile(a, highCdf) - (i + step))
+            ? `I think the i + step calculation is wrong, because it's further away from the expected value`
+            : `I think the i calculation is wrong, because it's further away from the expected value`
         }
         
         If you'd like to create a test to debug try this:
@@ -86,23 +106,26 @@ describe("CDF is correct", () => {
           const high = ${i + step}
           expect(cdf(a, high)).toBeGreaterThanOrEqual(cdf(a, low))
         })
-        `).toBeGreaterThanOrEqual(cdf(a, i));
-      })
+        `
+        ).toBeGreaterThanOrEqual(cdf(a, i));
+      });
     });
   });
   // This fails because quantile is not monotonic around that point. I think this is probably
   // an unreasonable test case. Skipping
   test.skip("fixture 0 should be monotonic around -1.9954616973944201", () => {
     const a = fixture[0].a;
-    expect(cdf(a, -1.99546169739442)).toBeGreaterThanOrEqual(cdf(a, -1.9954616973944201))
-  })
+    expect(cdf(a, -1.99546169739442)).toBeGreaterThanOrEqual(
+      cdf(a, -1.9954616973944201)
+    );
+  });
 
   test("grows also in tails", () => {
-    let dist = fixture[0]
+    let dist = fixture[0];
     const a = dist.a;
     const lower = -7.358952076939226;
     const higher = -7.358101504410828;
-    expect(cdf(a, higher)).toBeGreaterThanOrEqual(cdf(a,lower))
+    expect(cdf(a, higher)).toBeGreaterThanOrEqual(cdf(a, lower));
     let dist2 = fixture[2];
     const lower2 = 1.293561810361898;
     const higher2 = 1.2936914487498685;
@@ -116,9 +139,12 @@ describe("CDF is correct", () => {
       const start = quantile(a, 0.001);
       const end = quantile(a, 0.999);
       const step = (end - start) / 10000;
-      const diff = 100
+      const diff = 100;
       for (let i = start; i < end; i += step) {
-        expect(cdf(a, i) + step * pdf(a, i) / diff).toBeCloseTo(cdf(a, i + step / diff), 1)
+        expect(cdf(a, i) + (step * pdf(a, i)) / diff).toBeCloseTo(
+          cdf(a, i + step / diff),
+          1
+        );
       }
     });
   });
@@ -140,11 +166,11 @@ describe("PDF is correct", () => {
       const end = quantile(a, 0.999);
       const step = (end - start) / 10000;
       const diff = 100;
-      for(let i = start; i < end; i += step){
+      for (let i = start; i < end; i += step) {
         expect(pdf(a, i)).toBeGreaterThanOrEqual(0);
       }
-    })
-  })
+    });
+  });
 
   it("resolves quickly", () => {
     new Promise((resolve, reject) => {
@@ -176,26 +202,67 @@ describe("PDF is correct", () => {
 });
 
 describe("Fit x coordinate is correct", () => {
-  it("is better than rmetalog", () => {
-    fixture.forEach((dist) => {
-      const points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
-      const myFit = fitMetalog(points, dist.terms[0]);
-      const myFitScore = points.map(({x, y}) => (quantile(myFit, y) - x) ** 2).reduce((a, b) => a + b);
-      const rMetalogFitScore = points.map(({x, y}) => (quantile(dist.a, y) - x) ** 2).reduce((a, b) => a + b);
-      expect(myFitScore).toBeLessThan(rMetalogFitScore);
+  describe("OLS", () => {
+    it("is better than rmetalog", () => {
+      fixture.forEach((dist) => {
+        const points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
+        const myFit = fitMetalog(points, dist.terms[0]);
+        const myFitScore = points
+          .map(({ x, y }) => (quantile(myFit, y) - x) ** 2)
+          .reduce((a, b) => a + b);
+        const rMetalogFitScore = points
+          .map(({ x, y }) => (quantile(dist.a, y) - x) ** 2)
+          .reduce((a, b) => a + b);
+        expect(myFitScore).toBeLessThan(rMetalogFitScore);
+      });
+    });
+    it("has similar quantiles", () => {
+      fixture.forEach((dist) => {
+        const points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
+        const myFit = fitMetalog(points, dist.terms[0]);
+        points.forEach(({ x, y }) => expect(cdf(myFit, x)).toBeCloseTo(y));
+      });
     });
   });
-  it("Matches quantiles", () => {
-    const a = fitMetalog([{x: -1, y: 0.05}, {x: 2, y: 0.3}, {x: 6, y: 0.9}], 3)
-    expect(cdf(a, -1)).toBeCloseTo(0.05)
-    expect(cdf(a, 2)).toBeCloseTo(0.3)
-    expect(cdf(a, 6)).toBeCloseTo(0.9)
-  })
-  it("has similar quantiles", () => {
-    fixture.forEach((dist) => {
+
+  describe("LP", () => {
+    it("Matrices match pymetalog", async () => {
+      const dist = fixture[0];
       const points = zip(dist.cdf_y, dist.cdf_x).map(([y, x]) => ({ x, y }));
-      const myFit = fitMetalog(points, dist.terms[0]);
-      points.forEach(({x, y}) => expect(cdf(myFit, x)).toBeCloseTo(y));
+      const A_eq = equalityConstraintMatrix(points, dist.terms[0]).toArray();
+      const A_ub = upperBoundConstraintMatrix(
+        points.length,
+        dist.terms[0]
+      ).toArray();
+      const python_A_eq_file = await fs.promises.readFile("A_eq.csv");
+      const python_A_eq = python_A_eq_file
+        .toString()
+        .split("\n")
+        .map((line) => line.split(",").map((cell) => parseFloat(cell)));
+      const python_A_ub_file = await fs.promises.readFile("A_ub.csv");
+      const python_A_ub = python_A_ub_file
+        .toString()
+        .split("\n")
+        .map((line) => line.split(",").map((cell) => parseFloat(cell)));
+
+      const expectCloseToAll = (xss, yss) =>
+        xss.map((xs, i) =>
+          xs.map((x, j) =>
+            expect(x, `Failed at [${i}, ${j}]`).toBeCloseTo(yss[i][j])
+          )
+        );
+      expectCloseToAll(A_eq, python_A_eq);
+      expectCloseToAll(A_ub, python_A_ub);
+    });
+    it("Correctly handles problem case for OLS", () => {
+      const points = [
+        { x: -1.2, y: 0.05 },
+        { x: 4, y: 0.2 },
+        { x: 10, y: 0.9 },
+        { x: 15, y: 0.95 },
+      ];
+      const myFit = fitMetalogLP(points, points.length);
+      expect(validate(myFit)).toBe(MetalogValidationStatus.Success);
     });
   });
 });
