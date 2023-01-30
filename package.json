@@ -1,6 +1,6 @@
 {
   "name": "@quri/metalog",
-  "version": "1.2.2",
+  "version": "1.2.4",
   "description": "",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
   "dependencies": {
-    "glpk.js": "^4.0.1",
     "lpsolver": "^1.0.2",
     "mathjs": "^11.5.0",
+    "simple-simplex": "^1.0.1",
     "ulp": "^1.0.1"
   },
   "devDependencies": {
