@@ -254,6 +254,7 @@ describe("Fit x coordinate is correct", () => {
       expectCloseToAll(A_eq, python_A_eq);
       expectCloseToAll(A_ub, python_A_ub);
     });
+
     it("Correctly handles problem case for OLS", () => {
       const points = [
         { x: -1.2, y: 0.05 },
@@ -263,6 +264,10 @@ describe("Fit x coordinate is correct", () => {
       ];
       const myFit = fitMetalogLP(points, points.length);
       expect(validate(myFit)).toBe(MetalogValidationStatus.Success);
+      expect(cdf(myFit, -1.2)).toBeCloseTo(0.05, 1);
+      expect(cdf(myFit, 4)).toBeCloseTo(0.2, 1);
+      expect(cdf(myFit, 10)).toBeCloseTo(0.9, 1);
+      expect(cdf(myFit, 15)).toBeCloseTo(0.95, 1);
     });
   });
 });

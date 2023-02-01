@@ -1,3 +1,5 @@
 fixture.json
 jest.config.js
 test.js
+.direnv
+.devcontainer

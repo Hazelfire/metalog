@@ -10,8 +10,7 @@ import {
   MathNumericType,
 } from "mathjs";
 const util = require("util");
-const GLPK = require("glpk.js");
-const glpk = GLPK();
+import solver from "javascript-lp-solver";
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
 export function metalogBasisFunction(j: number, y: number): number {
@@ -226,6 +225,8 @@ export function fitMetalogLP(
     .fill(1)
     .concat(Array(2 * terms).fill(0));
 
+  // I'm using a library called "javascript-lp-solve". It's tauted as "linear programming
+  // for the rest of us". However, it's a tad annoying to work with as
   const names = objective.map((_, i) => {
     if (i / 2 < points.length) {
       if (i % 2 === 0) {
@@ -250,50 +251,36 @@ export function fitMetalogLP(
   };
 
   const x = points.map(({ x }) => x);
-
-  const ub_constraints: any = A_ub.toArray().map((coeff, i: number) => ({
-    name: "y" + i + "_ub",
-    vars: coeff.map((c, j) => ({ name: names[j], coef: -1 * c })),
-    bnds: { type: glpk.GLP_UP, ub: -1 * diff_error, lb: 0.0 },
-  }));
-
-  const eq_constraints: any = A_eq.toArray().map((coeff, i: number) => {
-    return {
-      name: "y" + i + "_eq",
-      vars: coeff.map((c, j) => ({ name: names[j], coef: c })),
-      bnds: {
-        type: glpk.GLP_FX,
-        ub: x[i],
-        lb: x[i],
-      },
-    };
-  });
-
-  const problem = {
-    name: "LP",
-    objective: {
-      direction: glpk.GLP_MIN,
-      name: "a",
-      vars: objective.map((c, i) => ({ name: names[i], coef: c })),
-    },
-    subjectTo: ub_constraints.concat(eq_constraints),
+  // This is a strange way to put a linear programming problem
+  const model = {
+    optimize: "c",
+    opType: "min",
+    constraints: Object.fromEntries(
+      x
+        .map((z, i) => ["A_eq" + i, { equal: z }])
+        .concat(
+          A_ub.toArray().map((_, i) => ["A_ub" + i, { max: -1 * diff_error }])
+        )
+    ),
+    variables: Object.fromEntries(
+      names.map((name, i) => [
+        name,
+        Object.fromEntries(
+          [["c", objective[i]]]
+            .concat(A_eq.toArray().map((row, j) => ["A_eq" + j, row[i]]))
+            .concat(A_ub.toArray().map((row, j) => ["A_ub" + j, -1 * row[i]]))
+        ),
+      ])
+    ),
   };
 
-  const result = glpk.solve(problem);
-  if (
-    result.result.status === glpk.GLP_FEAS ||
-    result.result.status === glpk.GLP_OPT
-  ) {
-    let arr = [];
-    for (let i = 0; i < terms; i++) {
-      arr.push(
-        result.result.vars["a" + i] - result.result.vars["a" + i + "_neg"]
-      );
-    }
-    return arr;
-  } else {
-    return undefined;
+  const result = solver.Solve(model);
+
+  let arr = [];
+  for (let i = 0; i < terms; i++) {
+    arr.push((result["a" + i] ?? 0) - (result["a" + i + "_neg"] ?? 0));
   }
+  return arr;
 }
 
 export function equalityConstraintMatrix(

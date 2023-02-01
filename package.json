@@ -20,9 +20,9 @@
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
   "dependencies": {
+    "javascript-lp-solver": "^0.4.24",
     "lpsolver": "^1.0.2",
     "mathjs": "^11.5.0",
-    "simple-simplex": "^1.0.1",
     "ulp": "^1.0.1"
   },
   "devDependencies": {
