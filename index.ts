@@ -9,7 +9,7 @@ import {
   number,
   MathNumericType,
 } from "mathjs";
-import solver from "javascript-lp-solver";
+import solver from "@bygdle/javascript-lp-solver";
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
 export function metalogBasisFunction(j: number, y: number): number {
@@ -253,7 +253,7 @@ export function fitMetalogLP(
   // This is a strange way to put a linear programming problem
   const model = {
     optimize: "c",
-    opType: "min",
+    opType: "min" as const,
     constraints: Object.fromEntries(
       x
         .map((z, i) => ["A_eq" + i, { equal: z }])
