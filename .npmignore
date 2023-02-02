@@ -1,4 +1,5 @@
 fixture.json
+*.py
 jest.config.js
 test.js
 .direnv

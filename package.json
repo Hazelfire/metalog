@@ -1,9 +1,12 @@
 {
   "name": "@quri/metalog",
   "version": "1.2.6",
-  "description": "",
+  "description": "A Javascript metalog implementation",
   "main": "./index.js",
-  "browser": "./dist/bundle.js",
+  "browser": {
+    "fs": false,
+    "child_process": false
+  },
   "types": "./index.d.ts",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",

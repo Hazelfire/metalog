@@ -4,4 +4,3 @@ module.exports = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["jest-expect-message"],
 };
-
