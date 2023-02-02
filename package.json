@@ -1,11 +1,11 @@
 {
   "name": "@quri/metalog",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "A Javascript metalog implementation",
   "main": "./index.js",
   "browser": {
-    "fs": false,
-    "child_process": false
+    "javascript-lp-solver/fs": false,
+    "javascript-lp-solver/child_process": false
   },
   "types": "./index.d.ts",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/Hazelfire/metalog#readme",
   "dependencies": {
-    "javascript-lp-solver": "^0.4.24",
+    "@bygdle/javascript-lp-solver": "^0.4.26",
     "mathjs": "^11.5.0"
   },
   "devDependencies": {
