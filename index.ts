@@ -9,7 +9,6 @@ import {
   number,
   MathNumericType,
 } from "mathjs";
-const util = require("util");
 import solver from "javascript-lp-solver";
 const sum = (x: number[]) => x.reduce((a, b) => a + b);
 
