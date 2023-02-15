@@ -207,7 +207,8 @@ export function fitMetalog(
 export function fitMetalogLP(
   points: { x: number; y: number }[],
   terms: number,
-  diff_error = 0.001
+  diffError = 0.001,
+  pointCount = 1000
 ): number[] | undefined {
   /* A matrix with the terms for all the differential points inside:
    * row count = number of points
@@ -217,7 +218,11 @@ export function fitMetalogLP(
    */
 
   const A_eq: any = equalityConstraintMatrix(points, terms);
-  const A_ub: any = upperBoundConstraintMatrix(points.length, terms);
+  const A_ub: any = upperBoundConstraintMatrix(
+    points.length,
+    terms,
+    pointCount
+  );
 
   // This fascinates me, still don't get it!
   const objective = Array(2 * points.length)
@@ -258,7 +263,7 @@ export function fitMetalogLP(
       x
         .map((z, i) => ["A_eq" + i, { equal: z }])
         .concat(
-          A_ub.toArray().map((_, i) => ["A_ub" + i, { max: -1 * diff_error }])
+          A_ub.toArray().map((_, i) => ["A_ub" + i, { max: -1 * diffError }])
         )
     ),
     variables: Object.fromEntries(
@@ -332,8 +337,12 @@ export function equalityConstraintMatrix(
   return A_eq;
 }
 
-export function upperBoundConstraintMatrix(points: number, terms: number) {
-  const diffMat = metalogDiffMatrix(terms, 1000);
+export function upperBoundConstraintMatrix(
+  points: number,
+  terms: number,
+  pointCount: number
+) {
+  const diffMat = metalogDiffMatrix(terms, pointCount);
 
   /* A matrix of all 0s
    * row count = number of points in diff matrix
@@ -394,7 +403,10 @@ export enum MetalogValidationStatus {
 // of a. I've basically litered this with shortcut functions to speed up some cases, but if it fails
 // to work out whether it is valid from that, then it just has to go through all the value of y for the derivitave
 // and check whether it's positive or not.
-export function validate(a: number[]): MetalogValidationStatus {
+export function validate(
+  a: number[],
+  samples: number = 100
+): MetalogValidationStatus {
   // must have at least 2 items in metalog array
   if (a.length < 2) {
     return MetalogValidationStatus.NotEnoughParamaters;
@@ -424,8 +436,11 @@ export function validate(a: number[]): MetalogValidationStatus {
     }
   }
   // We still don't know whether it's correct, just check for most y:
-  for (let i = 0; i < 99; i++) {
-    if (quantileDiff(a, i / 100 + 1 / 200) < 0) {
+  for (let i = 0; i < samples; i++) {
+    const x = i / (samples + 1) + 1 / (2 * samples);
+    const inv = quantileDiff(a, x);
+    if (inv < 0) {
+      console.log(`x: ${x}, inv: ${inv}`);
       return MetalogValidationStatus.NegativeDerivative;
     }
   }

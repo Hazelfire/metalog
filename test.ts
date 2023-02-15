@@ -6,7 +6,6 @@ import {
   quantile,
   cdf,
   pdf,
-  metalogBasisFunction,
   validate,
   MetalogValidationStatus,
 } from "./index";
@@ -232,7 +231,8 @@ describe("Fit x coordinate is correct", () => {
       const A_eq = equalityConstraintMatrix(points, dist.terms[0]).toArray();
       const A_ub = upperBoundConstraintMatrix(
         points.length,
-        dist.terms[0]
+        dist.terms[0],
+        1000
       ).toArray();
       const python_A_eq_file = await fs.promises.readFile("A_eq.csv");
       const python_A_eq = python_A_eq_file
@@ -268,6 +268,30 @@ describe("Fit x coordinate is correct", () => {
       expect(cdf(myFit, 4)).toBeCloseTo(0.2, 1);
       expect(cdf(myFit, 10)).toBeCloseTo(0.9, 1);
       expect(cdf(myFit, 15)).toBeCloseTo(0.95, 1);
+    });
+
+    it("Correctly handles problem cases", () => {
+      const cases = [
+        [
+          { x: -1.2, y: 0.1 },
+          { x: 4, y: 0.5 },
+          { x: 10, y: 0.6 },
+          { x: 15, y: 0.95 },
+        ],
+        [
+          { x: 2.2, y: 0.2 },
+          { x: 4, y: 0.29 },
+          { x: 10, y: 0.6 },
+          { x: 15, y: 0.95 },
+        ],
+      ];
+      cases.forEach((points) => {
+        const myFit = fitMetalogLP(points, points.length, 0, 20000);
+        expect(validate(myFit, 10000)).toBe(MetalogValidationStatus.Success);
+        points.forEach((point) => {
+          expect(cdf(myFit, point.x)).toBeCloseTo(point.y, 1);
+        });
+      });
     });
   });
 });
