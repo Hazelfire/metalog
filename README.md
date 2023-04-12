@@ -1,5 +1,5 @@
 # @quri/metalog
-This package is a JS implementation of metalog. It is based on [rmetalog](https://github.com/isaacfab/rmetalog) but varies in a couple of ways.
+This package is a TS implementation of metalog. It is based on [rmetalog](https://github.com/isaacfab/rmetalog) but varies in a couple of ways.
 
 1. rmetalog doesn't seem to strictly obey the cdf being the inverse of the quantile function. As far as I can tell, around the tails it doesn't hold this
 inverse perfectly. This implementation is built to hold that inverse better.
@@ -17,7 +17,7 @@ to work out how to iterate to the next highest float, and make sure the other fu
 ## Usage
 
 ```js
-import { quantile } from "@quri/metalog"
+import { quantile, cdf, pdf, variance, mean, fitMetalog } from "@quri/metalog"
 
 quantile([1, 2, 3], 0.5)
 cdf([1, 2, 3], 0)
